@@ -44,7 +44,7 @@ public class MyBot : IChessBot
             double[] evals = new double[legalMoves.Length];
             for (int i=0; i< legalMoves.Length; i++) {
                 board.MakeMove(legalMoves[i]);
-                evals[i] = EvaluatePosition(board);
+                evals[i] = EvaluatePosition(board) + (legalMoves[i].MovePieceType == PieceType.Pawn ? 1 : 0);
                 board.UndoMove(legalMoves[i]);
 
             }
@@ -69,13 +69,6 @@ public class MyBot : IChessBot
         }
 
         Array.Sort(evals, legalMoves);
-
-        // I'm a pusher
-        for (int i=legalMoves.Length - 1; (i>= 0 && i>=legalMoves.Length -4); i--) {
-            if (legalMoves[i].MovePieceType == PieceType.Pawn) {
-                return legalMoves[i];
-            }
-        }
 
         return legalMoves[legalMoves.Length - 1];
     }
