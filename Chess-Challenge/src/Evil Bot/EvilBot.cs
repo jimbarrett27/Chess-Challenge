@@ -74,7 +74,11 @@ namespace ChessChallenge.Example
         for (int i=0; i<allPieceList.Length; i++) {
             PieceList pieceList = allPieceList[i];
             if (pieceList.TypeOfPieceInList == PieceType.King) continue;
-            score += pieceList.Count * (pieceList.IsWhitePieceList ? 1.0 : -1.0) * pieceValues[pieceList.TypeOfPieceInList];
+            score += (
+                pieceList.Count 
+                * (pieceList.IsWhitePieceList ? 1.0 : -1.0) 
+                * pieceValues[pieceList.TypeOfPieceInList]
+            );
         }
         return score;
     }
