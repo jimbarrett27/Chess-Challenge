@@ -53,9 +53,11 @@ public class MyBot : IChessBot
 
     private double EvaluatePosition(Board board) {
 
-        if (evaluationsCache.ContainsKey(board.ZobristKey)) return evaluationsCache[board.ZobristKey];
 
         if (board.IsInCheckmate()) return board.IsWhiteToMove ? double.NegativeInfinity : double.PositiveInfinity;
+        if (board.IsDraw()) return 0.0;
+
+        if (evaluationsCache.ContainsKey(board.ZobristKey)) return evaluationsCache[board.ZobristKey];
         
         double score = 0.0;
         PieceList[] allPieceList = board.GetAllPieceLists();
@@ -134,7 +136,7 @@ public class MyBot : IChessBot
         double[] evals = new double[candidateMoves.Length];
         for (int i=0; i<candidateMoves.Length; i++){
             board.MakeMove(candidateMoves[i]);
-            evals[i] = EvaluateMove(board, 3, double.NegativeInfinity, double.PositiveInfinity, board.IsWhiteToMove);
+            evals[i] = EvaluateMove(board, 2, double.NegativeInfinity, double.PositiveInfinity, board.IsWhiteToMove);
             board.UndoMove(candidateMoves[i]);
         }
 
