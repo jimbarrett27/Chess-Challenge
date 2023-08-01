@@ -102,15 +102,11 @@ public class MyBot : IChessBot
         for (int i=0; i < candidateMoves.Length; i++) {
             double moveEval = 0.0;
             board.MakeMove(candidateMoves[i]);
-            
-            double thisPositionEval = EvaluatePosition(board);
-
 
             Move[] candidateReplies = board.GetLegalMoves();
             if (board.IsInCheckmate()) moveEval = board.IsWhiteToMove ? double.NegativeInfinity : double.PositiveInfinity;
-            else if (thisPositionEval - currentEval < -3) moveEval = double.NegativeInfinity;
             else if (candidateReplies.Length == 0) moveEval = 0;
-            else if (maxDepth == 0) moveEval = thisPositionEval;
+            else if (maxDepth == 0) moveEval = EvaluatePosition(board);
             else {
                 Move bestReply = ChooseBestMove(candidateReplies, board, maxDepth-1);
                 board.MakeMove(bestReply);
