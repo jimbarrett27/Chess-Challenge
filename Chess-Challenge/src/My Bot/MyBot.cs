@@ -94,35 +94,52 @@ public class MyBot : IChessBot
         return score;
     }
 
-    private Move ChooseBestMove(Move[] candidateMoves, Board board, int maxDepth) {
+    private double EvaluateMove(Board board, int depth, double alpha, double beta, bool playerIsMaximising) {
 
-        double currentEval = EvaluatePosition(board);
-        
-        double[] evals = new double[candidateMoves.Length];
-        for (int i=0; i < candidateMoves.Length; i++) {
-            double moveEval = 0.0;
-            board.MakeMove(candidateMoves[i]);
+        if (depth == 0 || board.IsInCheckmate() || board.IsDraw()) return EvaluatePosition(board);
 
-            Move[] candidateReplies = board.GetLegalMoves();
-            if (board.IsInCheckmate()) moveEval = board.IsWhiteToMove ? double.NegativeInfinity : double.PositiveInfinity;
-            else if (candidateReplies.Length == 0) moveEval = 0;
-            else if (maxDepth == 0) moveEval = EvaluatePosition(board);
-            else {
-                Move bestReply = ChooseBestMove(candidateReplies, board, maxDepth-1);
-                board.MakeMove(bestReply);
-                moveEval = EvaluatePosition(board);
-                board.UndoMove(bestReply);
+        else if (playerIsMaximising) {
+            double val = double.NegativeInfinity;
+            foreach (Move move in board.GetLegalMoves()) {
+                board.MakeMove(move);
+                val = Math.Max(val, EvaluateMove(board, depth-1, alpha, beta, false));
+                if (val > beta) {
+                    board.UndoMove(move);
+                    break;
+                }
+                alpha = Math.Max(alpha, val);
+                board.UndoMove(move);
             }
-            board.UndoMove(candidateMoves[i]);
-            evals[i] = moveEval;
+            return val;
         }
-
-        Array.Sort(evals, candidateMoves);
-        return board.IsWhiteToMove ? candidateMoves[candidateMoves.Length -1] : candidateMoves[0];
+        else {
+            double val = double.PositiveInfinity;
+            foreach (Move move in board.GetLegalMoves()) {
+                board.MakeMove(move);
+                val = Math.Min(val, EvaluateMove(board, depth-1, alpha, beta, true));
+                if (val < alpha) {
+                    board.UndoMove(move);
+                    break;
+                }
+                beta = Math.Min(beta, val);
+                board.UndoMove(move);
+            }
+            return val;
+        }
     }
 
     public Move Think(Board board, Timer timer)
-    {        
-        return ChooseBestMove(board.GetLegalMoves(), board, 1);
+    {   
+        Move[] candidateMoves = board.GetLegalMoves();
+        double[] evals = new double[candidateMoves.Length];
+        for (int i=0; i<candidateMoves.Length; i++){
+            board.MakeMove(candidateMoves[i]);
+            evals[i] = EvaluateMove(board, 3, double.NegativeInfinity, double.PositiveInfinity, board.IsWhiteToMove);
+            board.UndoMove(candidateMoves[i]);
+        }
+
+        Array.Sort(evals, candidateMoves);
+
+        return board.IsWhiteToMove ? candidateMoves[candidateMoves.Length - 1] : candidateMoves[0];  
     }
 }
