@@ -96,13 +96,24 @@ public class MyBot : IChessBot
         return score;
     }
 
+    private Move[] SortMovesForSearch(Move[] moves) {
+        
+        double[] prelimMoveScore = new double[moves.Length];
+        for (int i=0; i<moves.Length; i++) {
+            prelimMoveScore[i] = moves[i].IsCapture ? 0.0 : 1.0;
+        }
+        Array.Sort(prelimMoveScore, moves);
+
+        return moves;
+    }
+
     private double EvaluateMove(Board board, int depth, double alpha, double beta, bool playerIsMaximising) {
 
         if (depth == 0 || board.IsInCheckmate() || board.IsDraw()) return EvaluatePosition(board);
 
         else if (playerIsMaximising) {
             double val = double.NegativeInfinity;
-            foreach (Move move in board.GetLegalMoves()) {
+            foreach (Move move in SortMovesForSearch(board.GetLegalMoves())) {
                 board.MakeMove(move);
                 val = Math.Max(val, EvaluateMove(board, depth-1, alpha, beta, false));
                 if (val > beta) {
@@ -116,7 +127,7 @@ public class MyBot : IChessBot
         }
         else {
             double val = double.PositiveInfinity;
-            foreach (Move move in board.GetLegalMoves()) {
+            foreach (Move move in SortMovesForSearch(board.GetLegalMoves())) {
                 board.MakeMove(move);
                 val = Math.Min(val, EvaluateMove(board, depth-1, alpha, beta, true));
                 if (val < alpha) {
@@ -132,11 +143,11 @@ public class MyBot : IChessBot
 
     public Move Think(Board board, Timer timer)
     {   
-        Move[] candidateMoves = board.GetLegalMoves();
+        Move[] candidateMoves = SortMovesForSearch(board.GetLegalMoves());
         double[] evals = new double[candidateMoves.Length];
         for (int i=0; i<candidateMoves.Length; i++){
             board.MakeMove(candidateMoves[i]);
-            evals[i] = EvaluateMove(board, 2, double.NegativeInfinity, double.PositiveInfinity, board.IsWhiteToMove);
+            evals[i] = EvaluateMove(board, 4, double.NegativeInfinity, double.PositiveInfinity, board.IsWhiteToMove);
             board.UndoMove(candidateMoves[i]);
         }
 
