@@ -6,6 +6,15 @@ using System.Linq;
 public class MyBot : IChessBot
 {
 
+    Dictionary<PieceType, double> pieceValues = new Dictionary<PieceType, double>(){
+        {PieceType.Pawn, 1.0},
+        {PieceType.Knight, 3.0},
+        {PieceType.Bishop, 3.0},
+        {PieceType.Rook, 5.0},
+        {PieceType.Queen, 9.0},
+        // {PieceType.King, 0.0},
+    };
+
     Dictionary<ulong, double> evaluationsCache = new Dictionary<ulong, double>();
     private int getGamePhase(Board board) {
         // 0 = opening, 1 = middlegame, 2 = endgame
@@ -26,29 +35,29 @@ public class MyBot : IChessBot
     }
 
     private double scoreQueen(Board board, Piece queen) {
-        return 9.0 + ((1.0/64.0) * BitboardHelper.GetNumberOfSetBits(
+        return pieceValues[PieceType.Queen] + ((1.0/64.0) * BitboardHelper.GetNumberOfSetBits(
             BitboardHelper.GetSliderAttacks(PieceType.Queen, queen.Square, board)
         ));
     }
 
     private double scoreRook(Board board, Piece rook) {
-        return 5.0 + ((1.0/64.0) * BitboardHelper.GetNumberOfSetBits(
+        return pieceValues[PieceType.Rook] + ((1.0/64.0) * BitboardHelper.GetNumberOfSetBits(
             BitboardHelper.GetSliderAttacks(PieceType.Rook, rook.Square, board)
         ));
     }
 
     private double scoreBishop(Board board, Piece bishop) {
-        return 3.0 + ((1.0/64.0) * BitboardHelper.GetNumberOfSetBits(
+        return pieceValues[PieceType.Bishop] + ((1.0/64.0) * BitboardHelper.GetNumberOfSetBits(
             BitboardHelper.GetSliderAttacks(PieceType.Bishop, bishop.Square, board)
         ));
     }
 
     private double scoreKnight(Board board, Piece knight) {
-        return 3.0 + ((1.0/64.0) * Math.Abs(knight.Square.Index - 31));
+        return pieceValues[PieceType.Knight] + ((1.0/64.0) * Math.Abs(knight.Square.Index - 31));
     }
 
     private double scorePawn(Board board, Piece pawn) {
-        return 1.0;
+        return pieceValues[PieceType.Pawn];
     }
 
     private double EvaluatePosition(Board board) {
@@ -98,9 +107,10 @@ public class MyBot : IChessBot
 
     private Move[] SortMovesForSearch(Move[] moves) {
         
-        double[] prelimMoveScore = new double[moves.Length];
+        (int, double)[] prelimMoveScore = new (int, double)[moves.Length];
         for (int i=0; i<moves.Length; i++) {
-            prelimMoveScore[i] = moves[i].IsCapture ? 0.0 : 1.0;
+
+            prelimMoveScore[i] += moves[i].IsCapture ? "a" : "b";
         }
         Array.Sort(prelimMoveScore, moves);
 
