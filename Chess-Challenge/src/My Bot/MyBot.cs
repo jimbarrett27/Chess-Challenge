@@ -107,13 +107,15 @@ public class MyBot : IChessBot
 
     private Move[] SortMovesForSearch(Move[] moves) {
         
-        (int, double)[] prelimMoveScore = new (int, double)[moves.Length];
+        (int, int, double)[] prelimMoveScore = new (int, int, double)[moves.Length];
         for (int i=0; i<moves.Length; i++) {
-
-            prelimMoveScore[i] += moves[i].IsCapture ? "a" : "b";
+            prelimMoveScore[i] = (
+                moves[i].MovePieceType == PieceType.Pawn ? 0 : 1,
+                moves[i].IsCapture ? 0 : 1,
+                -1.0 * pieceValues.GetValueOrDefault(moves[i].CapturePieceType, 0.0)
+            );
         }
-        Array.Sort(prelimMoveScore, moves);
-
+        Array.Sort(prelimMoveScore, moves);        
         return moves;
     }
 
@@ -157,7 +159,7 @@ public class MyBot : IChessBot
         double[] evals = new double[candidateMoves.Length];
         for (int i=0; i<candidateMoves.Length; i++){
             board.MakeMove(candidateMoves[i]);
-            evals[i] = EvaluateMove(board, 4, double.NegativeInfinity, double.PositiveInfinity, board.IsWhiteToMove);
+            evals[i] = EvaluateMove(board, 3, double.NegativeInfinity, double.PositiveInfinity, board.IsWhiteToMove);
             board.UndoMove(candidateMoves[i]);
         }
 
